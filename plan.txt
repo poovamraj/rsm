@@ -1,0 +1,51 @@
+masterless
+    point to main node? any node? when installed
+        security? can any node be added?
+    what if node's IP changes
+        publishing IP change?
+        gossip protocol
+
+
+storage?
+    If serverless, will all nodes have info about all info?
+        Meaning, how to handle security issues
+    Low size db
+        json file in FS, Sqlite
+security?
+    passphrase
+    generate private key to be stored somewhere?
+    use key phrase to generate private key, from where many priv key can be generated? 
+    
+communication protocol?
+    websocket
+    json communication
+    security to connect
+        jwt token with info in claims, signed using passphrase?
+
+setup
+    port information
+    provide yaml file to configure
+    mdns discovery
+    
+
+
+server monitoring
+
+initial version
+    main node/agent
+    if agent
+        ask main node IP/port
+        password/key phrase to get added
+    main node
+        show running ip and port
+        command for agent to be connected
+        generate/ask for passphrase
+        how to store the passphrase? should we need to protect this?
+        initial version stateless?
+            then no need to run as daemon
+        store all node info in memory for now
+    use arg parser
+    run as daemon
+    Flutter integration
+        same/different passphrase as connecting agent?
+        flutter websocket
