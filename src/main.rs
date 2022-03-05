@@ -21,6 +21,7 @@ mod websocket;
 use websocket::server;
 use websocket::node;
 
+mod storage;
 
 #[tokio::main]
 async fn main() -> Result<> {

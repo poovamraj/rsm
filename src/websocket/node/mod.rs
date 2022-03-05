@@ -37,8 +37,12 @@ async fn read_stdin(tx: futures_channel::mpsc::UnboundedSender<Message>) {
     let mut stdin = tokio::io::stdin();
     loop {
         let mut buf = vec![0; 1024];
-        let _ = stdin.read(&mut buf).await;
-        let message = Comms::RegisterClient { uid: "123" };
+        let n = match stdin.read(&mut buf).await {
+            Err(_) | Ok(0) => break,
+            Ok(n) => n,
+        };
+        buf.truncate(n);
+        let message = Comms::RegisterClient { uid: std::str::from_utf8(&buf).unwrap().to_string(), device_name: "device_name".to_string() };
         tx.unbounded_send(Message::binary(serde_json::to_string(&message).unwrap())).unwrap();
     }
 }

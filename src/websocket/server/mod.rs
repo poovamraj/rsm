@@ -10,14 +10,16 @@ use tokio::net::{TcpListener, TcpStream};
 use std::{
     collections::HashMap,
     net::SocketAddr,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, mpsc::{Sender}},
 };
 use tokio_tungstenite::tungstenite::Message;
+
+use crate::storage::{repository::{StorageOps, get_storage_instance}};
 
 type Tx = UnboundedSender<Message>;
 type PeerMap = Arc<Mutex<HashMap<SocketAddr, Tx>>>;
 
-async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: SocketAddr) {
+async fn handle_connection(storage_sender: Sender<StorageOps>, peer_map: PeerMap, raw_stream: TcpStream, addr: SocketAddr) {
     println!("Incoming TCP connection from: {}", addr);
 
     let ws_stream = tokio_tungstenite::accept_async(raw_stream)
@@ -31,26 +33,9 @@ async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: Socke
 
     let (outgoing, incoming) = ws_stream.split();
 
-    let broadcast_incoming = incoming.try_for_each(|msg| {
-        println!(
-            "Received a message from {}: {}",
-            addr,
-            msg.to_text().unwrap()
-        );
-        comm_receiver::comm_receiver(msg.to_string());
-
-        // let peers = peer_map.lock().unwrap();
-
-        // // We want to broadcast the message to everyone except ourselves.
-        // let broadcast_recipients = peers
-        //     .iter()
-        //     .filter(|(peer_addr, _)| peer_addr != &&addr)
-        //     .map(|(_, ws_sink)| ws_sink);
-
-        // for recp in broadcast_recipients {
-        //     recp.unbounded_send(msg.clone()).unwrap();
-        // }
-
+    let broadcast_incoming = incoming.try_for_each(move |msg| {
+        println!("Received a message from {}: {}", addr, msg.to_text().unwrap());
+        comm_receiver::comm_receiver(storage_sender.clone(), msg.to_string());
         future::ok(())
     });
 
@@ -63,10 +48,13 @@ async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: Socke
     peer_map.lock().unwrap().remove(&addr);
 }
 
-pub async fn start_server() {
+pub async fn start_server<'a>() {
     let addr = "127.0.0.1:8080".to_string();
 
     let state = PeerMap::new(Mutex::new(HashMap::new()));
+
+    //Create a new storage instance
+    let storage_sender = get_storage_instance();
 
     // Create the event loop and TCP listener we'll accept connections on.
     let try_socket = TcpListener::bind(&addr).await;
@@ -75,6 +63,6 @@ pub async fn start_server() {
 
     // Let's spawn the handling of each connection in a separate task.
     while let Ok((stream, addr)) = listener.accept().await {
-        tokio::spawn(handle_connection(state.clone(), stream, addr));
+        tokio::spawn(handle_connection(storage_sender.clone(), state.clone(), stream, addr));
     }
 }
