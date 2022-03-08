@@ -1,4 +1,3 @@
-
 pub mod in_memory_storage;
 pub mod repository;
 
@@ -10,13 +9,19 @@ pub struct Device {
 
 impl Device {
     pub fn new(uid: String, device_name: String) -> Self {
-        Device { uid: uid, device_name: device_name }
+        Device {
+            uid: uid,
+            device_name: device_name,
+        }
     }
 }
 
 impl Clone for Device {
     fn clone(&self) -> Self {
-        Self { uid: self.uid.clone(), device_name: self.device_name.clone() }
+        Self {
+            uid: self.uid.clone(),
+            device_name: self.device_name.clone(),
+        }
     }
 }
 

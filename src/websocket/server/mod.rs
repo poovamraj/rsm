@@ -1,4 +1,3 @@
-
 mod comm_receiver;
 
 use futures::{StreamExt, TryStreamExt};
@@ -10,16 +9,21 @@ use tokio::net::{TcpListener, TcpStream};
 use std::{
     collections::HashMap,
     net::SocketAddr,
-    sync::{Arc, Mutex, mpsc::{Sender}},
+    sync::{mpsc::Sender, Arc, Mutex},
 };
 use tokio_tungstenite::tungstenite::Message;
 
-use crate::storage::{repository::{StorageOps, get_storage_instance}};
+use crate::storage::repository::{get_storage_instance, StorageOps};
 
 type Tx = UnboundedSender<Message>;
 type PeerMap = Arc<Mutex<HashMap<SocketAddr, Tx>>>;
 
-async fn handle_connection(storage_sender: Sender<StorageOps>, peer_map: PeerMap, raw_stream: TcpStream, addr: SocketAddr) {
+async fn handle_connection(
+    storage_sender: Sender<StorageOps>,
+    peer_map: PeerMap,
+    raw_stream: TcpStream,
+    addr: SocketAddr,
+) {
     println!("Incoming TCP connection from: {}", addr);
 
     let ws_stream = tokio_tungstenite::accept_async(raw_stream)
@@ -34,7 +38,11 @@ async fn handle_connection(storage_sender: Sender<StorageOps>, peer_map: PeerMap
     let (outgoing, incoming) = ws_stream.split();
 
     let broadcast_incoming = incoming.try_for_each(move |msg| {
-        println!("Received a message from {}: {}", addr, msg.to_text().unwrap());
+        println!(
+            "Received a message from {}: {}",
+            addr,
+            msg.to_text().unwrap()
+        );
         comm_receiver::comm_receiver(storage_sender.clone(), msg.to_string());
         future::ok(())
     });
@@ -63,6 +71,11 @@ pub async fn start_server<'a>() {
 
     // Let's spawn the handling of each connection in a separate task.
     while let Ok((stream, addr)) = listener.accept().await {
-        tokio::spawn(handle_connection(storage_sender.clone(), state.clone(), stream, addr));
+        tokio::spawn(handle_connection(
+            storage_sender.clone(),
+            state.clone(),
+            stream,
+            addr,
+        ));
     }
 }

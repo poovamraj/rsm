@@ -1,12 +1,12 @@
-use std::sync::mpsc::{channel, Sender, Receiver};
+use std::sync::mpsc::{channel, Receiver, Sender};
 
-use super::{Storage, Device, in_memory_storage::InMemoryDb};
+use super::{in_memory_storage::InMemoryDb, Device, Storage};
 
 pub enum StorageOps {
-    InsertDevice(Device)
+    InsertDevice(Device),
 }
 
-pub fn get_storage_instance() -> Sender<StorageOps>{
+pub fn get_storage_instance() -> Sender<StorageOps> {
     let db = InMemoryDb::new();
     let (tx, rx) = channel();
     tokio::spawn(receive_storage_ops(db, rx));
@@ -16,7 +16,7 @@ pub fn get_storage_instance() -> Sender<StorageOps>{
 async fn receive_storage_ops(mut db: InMemoryDb, rx: Receiver<StorageOps>) {
     while let Ok(msg) = rx.recv() {
         match msg {
-            StorageOps::InsertDevice(device) => { db.insert(device) }
+            StorageOps::InsertDevice(device) => db.insert(device),
         }
     }
 }

@@ -1,15 +1,15 @@
-use std::{collections::HashMap};
 use super::{Device, Storage};
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct InMemoryDb {
-    map: HashMap<String, Device>
+    map: HashMap<String, Device>,
 }
 
 impl InMemoryDb {
     pub fn new() -> Self {
         InMemoryDb {
-            map: HashMap::new()
+            map: HashMap::new(),
         }
     }
 }
@@ -21,7 +21,5 @@ impl Storage for InMemoryDb {
         dbg!(self);
     }
 
-    fn update(&self, _: Device) {
-         
-    }
+    fn update(&self, _: Device) {}
 }

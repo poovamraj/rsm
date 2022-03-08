@@ -1,6 +1,6 @@
-use std::net::Ipv4Addr;
-use std::{fmt::Result};
 use std::ffi::OsStr;
+use std::fmt::Result;
+use std::net::Ipv4Addr;
 
 use futures::StreamExt;
 use heim::units::information;
@@ -15,25 +15,29 @@ use heim::{
 };
 use std::env;
 
-use futures_util::{stream::TryStreamExt};
+use futures_util::stream::TryStreamExt;
 
 mod websocket;
-use websocket::server;
 use websocket::node;
+use websocket::server;
 
 mod storage;
 
 #[tokio::main]
-async fn main() -> Result<> {
+async fn main() -> Result {
     let mut args: Vec<String> = env::args().collect();
     args.remove(0);
     if args.len() < 1 {
         println!("Please let us know if the agent is node or main")
     }
     match args[0].as_str() {
-        "main" => { server::start_server().await; }
-        "node" => { client_main(args).await }
-        _ => { print!("Provide option main or node. Ex - cargo run main (or) cargo run node") }
+        "main" => {
+            server::start_server().await;
+        }
+        "node" => client_main(args).await,
+        _ => {
+            print!("Provide option main or node. Ex - cargo run main (or) cargo run node")
+        }
     }
     Ok(())
 }
@@ -57,7 +61,6 @@ async fn _usage(process: Process) -> ProcessResult<(process::Process, Ratio)> {
     let usage_2 = process.cpu_usage().await?;
     Ok((process, usage_2 - usage_1))
 }
-
 
 async fn _top() -> ProcessResult<()> {
     let (one, five, fifteen) = loadavg().await?;

@@ -1,3 +1,3 @@
-pub mod server;
-pub mod node;
 mod comm;
+pub mod node;
+pub mod server;

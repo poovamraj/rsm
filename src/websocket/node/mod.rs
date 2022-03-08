@@ -8,7 +8,7 @@ use super::comm::Comms;
 
 pub async fn connect(ip: &Ipv4Addr, port: &u16) {
     println!("{}:{}", ip, port);
-    let url =  String::from("ws://") + &ip.to_string() + ":" + &port.to_string();
+    let url = String::from("ws://") + &ip.to_string() + ":" + &port.to_string();
     println!("{}", url);
 
     let (stdin_tx, stdin_rx) = futures_channel::mpsc::unbounded();
@@ -42,7 +42,11 @@ async fn read_stdin(tx: futures_channel::mpsc::UnboundedSender<Message>) {
             Ok(n) => n,
         };
         buf.truncate(n);
-        let message = Comms::RegisterClient { uid: std::str::from_utf8(&buf).unwrap().to_string(), device_name: "device_name".to_string() };
-        tx.unbounded_send(Message::binary(serde_json::to_string(&message).unwrap())).unwrap();
+        let message = Comms::RegisterClient {
+            uid: std::str::from_utf8(&buf).unwrap().to_string(),
+            device_name: "device_name".to_string(),
+        };
+        tx.unbounded_send(Message::binary(serde_json::to_string(&message).unwrap()))
+            .unwrap();
     }
 }
