@@ -4,6 +4,8 @@ use futures_util::{future, pin_mut, StreamExt};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 
+use crate::sys_info;
+
 use super::comm::Comms;
 
 pub async fn connect(ip: &Ipv4Addr, port: &u16) {
@@ -43,7 +45,7 @@ async fn read_stdin(tx: futures_channel::mpsc::UnboundedSender<Message>) {
         };
         buf.truncate(n);
         let message = Comms::RegisterClient {
-            uid: std::str::from_utf8(&buf).unwrap().to_string(),
+            uid: sys_info::get_uid(),
             device_name: "device_name".to_string(),
         };
         tx.unbounded_send(Message::binary(serde_json::to_string(&message).unwrap()))
