@@ -14,6 +14,9 @@ pub fn comm_receiver(storage_sender: Sender<StorageOps>, message: String) {
                 let _ =
                     storage_sender.send(StorageOps::InsertDevice(Device::new(uid, device_name)));
             }
+            Comms::ConnectUi {} => {
+                println!("UI Connected")
+            }
         },
         Err(_) => {
             println!("Unknown message sent");

@@ -4,4 +4,5 @@ use serde::{Deserialize, Serialize};
 #[serde(tag = "type", content = "message")]
 pub enum Comms {
     RegisterClient { uid: String, device_name: String },
+    ConnectUi
 }
